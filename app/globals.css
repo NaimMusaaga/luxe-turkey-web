@@ -1,0 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;700&display=swap");
+
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+:root {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --font-arabic: "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-fallback: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-mono-fallback);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
