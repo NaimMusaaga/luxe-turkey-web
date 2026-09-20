@@ -1,131 +1,204 @@
-import { LUXURY_PROPERTIES } from '@/src/constants/data';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  Bath,
+  BedDouble,
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  MapPin,
+  Ruler,
+  Building2,
+} from "lucide-react";
+import { LUXURY_PROPERTIES } from "@/src/constants/data";
+import {
+  CITY_LABELS,
+  TYPE_LABELS,
+  formatDate,
+  formatPrice,
+} from "@/src/lib/format";
+import { getPropertyBySlug, getRelatedProperties } from "@/src/lib/properties";
+import { StatusBadge } from "@/src/components/property/StatusBadge";
+import { PropertyCard } from "@/src/components/property/PropertyCard";
+import { InquiryForm } from "@/src/components/property/InquiryForm";
+import { SectionHeading } from "@/src/components/ui/SectionHeading";
 
 interface PropertyPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
+  params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams() {
+  return LUXURY_PROPERTIES.map((property) => ({ slug: property.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PropertyPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const property = getPropertyBySlug(slug);
+  if (!property) return {};
+
+  return {
+    title: property.title,
+    description: property.shortDescription,
+    openGraph: {
+      title: property.title,
+      description: property.shortDescription,
+      images: [{ url: property.imageUrls[0] }],
+    },
+  };
 }
 
 export default async function PropertyPage({ params }: PropertyPageProps) {
   const { slug } = await params;
-  const property = LUXURY_PROPERTIES.find(p => p.slug === slug);
+  const property = getPropertyBySlug(slug);
+  if (!property) notFound();
 
-  if (!property) {
-    notFound();
-  }
+  const related = getRelatedProperties(property);
+  const facts = [
+    { icon: BedDouble, label: "غرف النوم", value: property.bedrooms },
+    { icon: Bath, label: "الحمامات", value: property.bathrooms },
+    { icon: Ruler, label: "المساحة (م²)", value: property.areaSqm },
+    { icon: CalendarDays, label: "سنة البناء", value: property.yearBuilt },
+  ];
 
   return (
-    <main className="min-h-screen bg-[#0F172A] pt-28 pb-12 px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* زر العودة */}
-        <Link
-          href="/properties"
-          className="inline-flex items-center text-[#D4AF37] hover:text-white transition-colors mb-8"
-        >
-          <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          العودة للعقارات
-        </Link>
+    <>
+      <div className="mx-auto max-w-7xl px-5 pb-20 pt-8 sm:px-8">
+        <nav aria-label="مسار التنقل" className="mb-6 text-sm text-muted">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link href="/" className="hover:text-navy">
+                الرئيسية
+              </Link>
+            </li>
+            <li aria-hidden>
+              <ChevronLeft className="size-3.5" />
+            </li>
+            <li>
+              <Link href="/properties" className="hover:text-navy">
+                العقارات
+              </Link>
+            </li>
+            <li aria-hidden>
+              <ChevronLeft className="size-3.5" />
+            </li>
+            <li aria-current="page" className="font-medium text-navy">
+              {property.title}
+            </li>
+          </ol>
+        </nav>
 
-        {/* الصورة الرئيسية */}
-        <div className="relative h-96 md:h-[500px] rounded-2xl overflow-hidden mb-8">
-          <img
+        <div className="relative aspect-[16/9] overflow-hidden rounded-3xl bg-sand sm:aspect-[21/9]">
+          <Image
             src={property.imageUrls[0]}
             alt={property.title}
-            className="w-full h-full object-cover"
+            fill
+            priority
+            sizes="(min-width: 1280px) 1216px, 100vw"
+            className="object-cover"
           />
-          <div className="absolute top-4 left-4 bg-[#D4AF37] text-[#0F172A] px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-            {property.city}
-          </div>
         </div>
 
-        {/* تفاصيل العقار */}
-        <div className="bg-[#1E293B]/50 backdrop-blur-sm border border-[#D4AF37]/10 rounded-2xl p-8">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                {property.title}
-              </h1>
-              <p className="text-gray-400 text-lg">
-                {property.district}, {property.city}
-              </p>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusBadge status={property.status} />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 text-xs font-medium text-navy">
+                <Building2 className="size-3.5" aria-hidden />
+                {TYPE_LABELS[property.propertyType]}
+              </span>
             </div>
-            <div className="mt-4 lg:mt-0 lg:text-right">
-              <div className="text-3xl font-bold text-[#D4AF37]">
-                {property.price.toLocaleString()} {property.currency}
-              </div>
-              <div className="text-gray-400 text-sm mt-1">
-                {property.status === 'for-sale' ? 'متاح للبيع' :
-                 property.status === 'sold' ? 'مباع' : 'قيد الانتظار'}
-              </div>
-            </div>
-          </div>
 
-          {/* الوصف */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">الوصف</h2>
-            <p className="text-gray-300 leading-relaxed">
-              {property.description}
+            <h1 className="mt-4 text-balance text-3xl font-bold leading-tight text-navy sm:text-4xl">
+              {property.title}
+            </h1>
+            <p className="mt-3 flex items-center gap-2 text-muted">
+              <MapPin className="size-4 text-gold-dark" aria-hidden />
+              {property.district}، {CITY_LABELS[property.city]}
+            </p>
+
+            <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {facts.map(({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-line bg-white p-5 text-center"
+                >
+                  <Icon className="mx-auto mb-2 size-5 text-gold-dark" aria-hidden />
+                  <dd className="text-2xl font-bold text-navy">{value}</dd>
+                  <dt className="mt-1 text-xs text-muted">{label}</dt>
+                </div>
+              ))}
+            </dl>
+
+            <section className="mt-12">
+              <h2 className="text-xl font-bold text-navy">عن العقار</h2>
+              <p className="mt-4 text-base leading-9 text-ink/85">
+                {property.description}
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 className="text-xl font-bold text-navy">المميزات</h2>
+              <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                {property.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 text-sm"
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold-dark">
+                      <Check className="size-3.5" aria-hidden />
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <p className="mt-10 text-sm text-muted">
+              تاريخ الإدراج: {formatDate(property.listedAt)}
             </p>
           </div>
 
-          {/* المواصفات */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#D4AF37]">{property.bedrooms}</div>
-              <div className="text-gray-400 text-sm">غرف نوم</div>
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-3xl border border-line bg-white p-7 shadow-xl shadow-navy/5">
+              <p className="text-sm text-muted">السعر</p>
+              <p
+                dir="ltr"
+                className="mt-1 text-start font-display text-4xl font-semibold text-navy"
+              >
+                {formatPrice(property.price, property.currency)}
+              </p>
+              <div className="my-6 h-px bg-line" />
+              <h2 className="mb-4 text-lg font-bold text-navy">
+                استفسر عن هذا العقار
+              </h2>
+              <InquiryForm
+                subject={property.title}
+                defaultMessage={`أرغب في معرفة المزيد عن «${property.title}».`}
+              />
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#D4AF37]">{property.bathrooms}</div>
-              <div className="text-gray-400 text-sm">حمام</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#D4AF37]">{property.areaSqm}</div>
-              <div className="text-gray-400 text-sm">متر مربع</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#D4AF37]">{property.yearBuilt}</div>
-              <div className="text-gray-400 text-sm">سنة البناء</div>
-            </div>
-          </div>
+          </aside>
+        </div>
+      </div>
 
-          {/* المميزات */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">المميزات</h2>
-            <div className="flex flex-wrap gap-2">
-              {property.features.map((feature, index) => (
-                <span
-                  key={index}
-                  className="bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full text-sm"
-                >
-                  {feature}
-                </span>
+      {related.length > 0 ? (
+        <section className="bg-sand py-20">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <SectionHeading
+              eyebrow="قد يعجبك أيضاً"
+              title={`المزيد من عقارات ${CITY_LABELS[property.city]}`}
+            />
+            <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((item) => (
+                <PropertyCard key={item.id} property={item} />
               ))}
             </div>
           </div>
-
-          {/* معلومات إضافية */}
-          <div className="border-t border-gray-700 pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-400">نوع العقار:</span>
-                <span className="text-white ml-2">
-                  {property.propertyType === 'villa' ? 'فيلا' :
-                   property.propertyType === 'penthouse' ? 'بنتهاوس' :
-                   property.propertyType === 'apartment' ? 'شقة' : 'قصر'}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-400">تاريخ الإدراج:</span>
-                <span className="text-white ml-2">{property.listedAt}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+        </section>
+      ) : null}
+    </>
   );
 }
