@@ -1,10 +1,8 @@
 export type PropertyStatus = "for-sale" | "sold" | "pending";
 
-export type PropertyType =
-  | "villa"
-  | "penthouse"
-  | "apartment"
-  | "mansion";
+export type PropertyType = "villa" | "penthouse" | "apartment" | "mansion";
+
+export type City = "istanbul" | "antalya";
 
 export type ListingCurrency = "TRY" | "USD" | "EUR";
 
@@ -14,9 +12,8 @@ export interface Property {
   readonly title: string;
   readonly shortDescription: string;
   readonly description: string;
-  readonly city: string;
+  readonly city: City;
   readonly district: string;
-  readonly country: "Turkey";
   readonly price: number;
   readonly currency: ListingCurrency;
   readonly bedrooms: number;
@@ -28,4 +25,5 @@ export interface Property {
   readonly imageUrls: readonly string[];
   readonly listedAt: string;
   readonly status: PropertyStatus;
+  readonly featured: boolean;
 }

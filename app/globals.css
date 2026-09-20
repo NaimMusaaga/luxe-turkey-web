@@ -1,25 +1,50 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;700&display=swap");
-
 @import "tailwindcss";
-@config "../tailwind.config.ts";
-
-:root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --font-arabic: "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
-  --font-mono-fallback: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-}
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-mono-fallback);
+  --color-navy: #0d1a2b;
+  --color-navy-800: #12233a;
+  --color-navy-700: #1a3050;
+  --color-gold: #b8965a;
+  --color-gold-light: #d8bd88;
+  --color-gold-dark: #8a6a35;
+  --color-ivory: #faf7f2;
+  --color-sand: #f2ede4;
+  --color-line: #e5ddcf;
+  --color-ink: #13202f;
+  --color-muted: #5b6878;
+
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-gold-light);
+  color: var(--color-navy);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

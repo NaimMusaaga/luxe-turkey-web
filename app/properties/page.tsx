@@ -1,76 +1,94 @@
-import { LUXURY_PROPERTIES } from '@/src/constants/data';
-import Link from 'next/link';
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SearchX } from "lucide-react";
+import { PropertyCard } from "@/src/components/property/PropertyCard";
+import { SearchForm } from "@/src/components/property/SearchForm";
+import { buttonClass } from "@/src/components/ui/button";
+import {
+  filterProperties,
+  hasActiveFilters,
+  parseFilters,
+} from "@/src/lib/properties";
 
-export default function PropertiesPage() {
+export const metadata: Metadata = {
+  title: "العقارات",
+  description:
+    "تصفّح الفلل والبنتهاوس والشقق الفاخرة في إسطنبول وأنطاليا، وفلتر حسب المدينة والنوع والسعر.",
+};
+
+export default async function PropertiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const filters = parseFilters(await searchParams);
+  const results = filterProperties(filters);
+  const filtered = hasActiveFilters(filters);
+
   return (
-    <main className="min-h-screen bg-[#0F172A] pt-28 pb-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#D4AF37] mb-4">
-            عقاراتنا الحصرية في تركيا
+    <>
+      <header className="bg-navy pb-24 pt-16 text-center sm:pt-20">
+        <div className="mx-auto max-w-3xl px-5 sm:px-8">
+          <p className="mb-3 text-sm font-semibold text-gold">العقارات</p>
+          <h1 className="text-balance text-3xl font-bold text-white sm:text-5xl">
+            عقارات فاخرة في تركيا
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            نقدم لك مجموعة مختارة من أرقى العقارات في قلب إسطنبول وسحر أنطاليا، بمواصفات عالمية وتصاميم فريدة.
+          <p className="mt-5 text-base leading-8 text-slate-300">
+            من إطلالات البوسفور في إسطنبول إلى شواطئ أنطاليا، اختر ما يناسبك.
           </p>
-        </header>
-        
-        {/* العرض المؤتمت بناءً على LUXURY_PROPERTIES */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {LUXURY_PROPERTIES.map((property) => (
-            <div key={property.id} className="bg-[#1E293B]/50 backdrop-blur-sm border border-[#D4AF37]/10 rounded-2xl overflow-hidden hover:border-[#D4AF37] transition-all duration-300 group shadow-xl">
-              {/* الصورة */}
-              <div className="relative h-72 overflow-hidden">
-                <img 
-                  src={property.imageUrls[0]} 
-                  alt={property.title} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4 bg-[#D4AF37] text-[#0F172A] px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                  {property.city}
-                </div>
-              </div>
-
-              {/* التفاصيل */}
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-white leading-tight">{property.title}</h3>
-                </div>
-                
-                <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                  {property.shortDescription}
-                </p>
-
-                <div className="flex items-center text-[#D4AF37] font-bold text-xl mb-6">
-                  {property.price.toLocaleString()} <span className="text-sm ml-1 uppercase">{property.currency}</span>
-                </div>
-
-                {/* المواصفات بلمسة مهندس */}
-                <div className="grid grid-cols-3 gap-2 py-4 border-t border-gray-700 text-gray-300 text-sm">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs text-gray-500 uppercase">غرف</span>
-                    <span className="font-semibold">{property.bedrooms}</span>
-                  </div>
-                  <div className="flex flex-col items-center border-x border-gray-700">
-                    <span className="text-xs text-gray-500 uppercase">حمام</span>
-                    <span className="font-semibold">{property.bathrooms}</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs text-gray-500 uppercase">مساحة</span>
-                    <span className="font-semibold">{property.areaSqm}m²</span>
-                  </div>
-                </div>
-
-                <Link 
-                  href={`/properties/${property.slug}`}
-                  className="block w-full text-center mt-4 py-3 bg-transparent border border-[#D4AF37] text-[#D4AF37] rounded-xl hover:bg-[#D4AF37] hover:text-[#0F172A] transition-colors font-bold"
-                >
-                  عرض التفاصيل
-                </Link>
-              </div>
-            </div>
-          ))}
         </div>
+      </header>
+
+      <div className="mx-auto -mt-12 max-w-7xl px-5 pb-20 sm:px-8">
+        <SearchForm defaults={filters} showSort />
+
+        <div className="mb-8 mt-10 flex items-center justify-between gap-4">
+          <p className="text-sm text-muted" aria-live="polite">
+            {results.length === 0
+              ? "لا توجد نتائج"
+              : `${results.length} ${results.length > 2 ? "عقارات" : "عقار"}`}
+          </p>
+          {filtered ? (
+            <Link
+              href="/properties"
+              className="text-sm font-medium text-gold-dark underline underline-offset-4"
+            >
+              مسح الفلاتر
+            </Link>
+          ) : null}
+        </div>
+
+        {results.length > 0 ? (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {results.map((property, index) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                priority={index < 3}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-line bg-white px-6 py-16 text-center">
+            <SearchX className="mx-auto mb-4 size-10 text-gold-dark" aria-hidden />
+            <h2 className="text-xl font-bold text-navy">
+              لا توجد عقارات مطابقة لبحثك
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-muted">
+              جرّب توسيع نطاق السعر أو تغيير المدينة، أو أخبرنا بما تبحث عنه
+              وسنرشّح لك خيارات مناسبة.
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link href="/properties" className={buttonClass("dark", "md")}>
+                عرض كل العقارات
+              </Link>
+              <Link href="/contact" className={buttonClass("outline", "md")}>
+                اطلب ترشيحاً مخصصاً
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
-    </main>
+    </>
   );
 }
