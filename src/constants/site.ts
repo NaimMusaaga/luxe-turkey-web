@@ -10,9 +10,12 @@ export const SITE = {
     process.env.NEXT_PUBLIC_SITE_URL ??
     (productionHost ? `https://${productionHost}` : "http://localhost:3000"),
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "info@luxeturkey.com",
-  // Digits only, with country code and no "+", e.g. 905551234567.
-  // Leave empty to hide every WhatsApp button until a real number is set.
-  whatsapp: (process.env.NEXT_PUBLIC_WHATSAPP ?? "").replace(/\D/g, ""),
+  // Digits only, with country code and no "+" or leading 0 (e.g. 905551234567).
+  // Override with NEXT_PUBLIC_WHATSAPP; set it to an empty string to hide all WhatsApp buttons.
+  whatsapp: (process.env.NEXT_PUBLIC_WHATSAPP ?? "905393044489").replace(
+    /\D/g,
+    "",
+  ),
   location: "تركيا",
 } as const;
 
